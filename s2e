@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Copyright 2014 EPFL. All rights reserved.
+#
+# S2E Docker management script, inspired from Discourse's own launcher script.
+
+command=$1
+
+image=stefanbucur/s2e
+docker_path=$(which docker)
+source_path=$(readlink -e src)
+
+cidbootstrap=cids/bootstrap.cid
+
+usage () {
+    echo "Usage: s2e COMMAND"
+    echo "Commands:"
+    echo "    bootstrap: Prepare an S2E container"
+    exit 1
+}
+
+run_bootstrap () {
+    rm -f $cidbootstrap
+
+    $docker_path run --cidfile $cidbootstrap \
+	-i -a stdin -a stdout -a stderr \
+	-v $source_path:/home/s2e/src \
+	$image /bin/bash -c 'ls -l src/'
+}
+
+case "$command" in
+    bootstrap)
+	run_bootstrap
+	echo "Success"
+	exit 0
+	;;
+esac
+
+usage
