@@ -22,12 +22,22 @@ RUN mkdir -p /var/run/sshd
 RUN apt-get install -y --no-install-recommends openjdk-7-jdk
 RUN apt-get build-dep -y matplotlib
 
+RUN apt-get install -y libdwarf-dev libelf-dev libboost-dev libsqlite3-dev libmemcached-dev libboost-serialization-dev libboost-system-dev
+
+# Install protobuf
+RUN mkdir -p /build &&\
+  wget 'https://protobuf.googlecode.com/svn/rc/protobuf-2.5.0.tar.gz' &&\
+  tar xzvf protobuf-2.5.0.tar.gz &&\
+  cd protobuf-2.5.0 && ./configure && make -j8 && make install && ldconfig &&\
+  rm -rf /build
+
 # Install pip
 ADD requirements.txt /build/requirements.txt
 RUN mkdir -p /build && cd /build &&\
   wget https://bootstrap.pypa.io/get-pip.py &&\
   python get-pip.py &&\
   pip install --upgrade distribute &&\
+  pip install --upgrade virtualenv &&\
   pip install -r requirements.txt &&\
   rm -rf /build
 
