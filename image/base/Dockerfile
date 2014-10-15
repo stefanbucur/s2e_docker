@@ -23,9 +23,9 @@ RUN mkdir -p /build && cd /build &&\
   python scripts/mk_make.py && make -C build -j4 && make -C build install &&\
   rm -rf /build
 
-ADD llvm-3.2-memorytracer.patch /opt/s2e/llvm/patches
-ADD clang-3.2-memorytracer.patch /opt/s2e/llvm/patches
-ADD compiler-rt-3.2-asan4s2e.patch /opt/s2e/llvm/patches
+ADD llvm-3.2-memorytracer.patch /opt/s2e/llvm/patches/
+ADD clang-3.2-memorytracer.patch /opt/s2e/llvm/patches/
+ADD compiler-rt-3.2-asan4s2e.patch /opt/s2e/llvm/patches/
 
 # Download & patch the LLVM source code
 RUN cd /opt/s2e/llvm &&\
@@ -48,7 +48,7 @@ RUN cd /opt/s2e/llvm/llvm-3.2.src-native &&\
   ./configure \
     --prefix=/opt/s2e/llvm/llvm-3.2-native \
     --enable-jit --enable-optimized --disable-assertions &&\
-  make ENABLE_OPTIMIZED=1 -j4 && make install && cd .. && rm -rf llvm-3.2.src-native
+  make ENABLE_OPTIMIZED=1 -j8 && make install && cd .. && rm -rf llvm-3.2.src-native
 
 # Build the target LLVM
 RUN cd /opt/s2e/llvm && mkdir -p llvm-3.2.build && cd llvm-3.2.build &&\
@@ -56,7 +56,7 @@ RUN cd /opt/s2e/llvm && mkdir -p llvm-3.2.build && cd llvm-3.2.build &&\
     --enable-jit --enable-optimized --target=x86_64 --enable-targets=x86 \
     CC=/opt/s2e/llvm/llvm-3.2-native/bin/clang \
     CXX=/opt/s2e/llvm/llvm-3.2-native/bin/clang++ &&\
-  make ENABLE_OPTIMIZED=1 REQUIRES_RTTI=1
+  make ENABLE_OPTIMIZED=1 REQUIRES_RTTI=1 -j8
 
 # At this point we're left with three directories in /opt/s2e/llvm:
 # - llvm-3.2-native
