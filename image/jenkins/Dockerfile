@@ -15,14 +15,17 @@ FROM stefanbucur/s2e-base:latest
 MAINTAINER Stefan Bucur <stefan.bucur@epfl.ch>
 
 RUN apt-get update &&\
-  apt-get install -y emacs23-nox openssh-server sudo
+  apt-get install -y emacs23-nox openssh-server sudo rpcbind nfs-common
 
 RUN mkdir -p /var/run/sshd
 
 RUN apt-get install -y --no-install-recommends openjdk-7-jdk
 RUN apt-get build-dep -y matplotlib
 
-RUN apt-get install -y libdwarf-dev libelf-dev libboost-dev libsqlite3-dev libmemcached-dev libboost-serialization-dev libboost-system-dev
+# Additional S2E dependencies
+RUN apt-get install -y libdwarf-dev libelf-dev libboost-dev \
+  libsqlite3-dev libmemcached-dev libboost-serialization-dev \
+  libboost-system-dev libc6-dev-i386
 
 # Install protobuf
 RUN mkdir -p /build &&\
