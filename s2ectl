@@ -6,9 +6,9 @@
 
 command=$1
 
-image=stefanbucur/s2e
+image="stefanbucur/chef"
 docker_path=$(which docker)
-source_path=$(readlink -e src)
+source_path=$(readlink -f s2e)
 
 cidbootstrap=cids/bootstrap.cid
 
@@ -22,10 +22,15 @@ usage () {
 run_bootstrap () {
     rm -f $cidbootstrap
 
-    $docker_path run --cidfile $cidbootstrap \
+    ${docker_path} history ${image} >/dev/null 2>&1 || ${docker_path} pull ${image}
+
+    ${docker_path} run --cidfile ${cidbootstrap} \
 	-i -a stdin -a stdout -a stderr \
-	-v $source_path:/home/s2e/src \
-	$image /bin/bash -c 'ls -l src/'
+	-v ${source_path}:/home/s2e/s2e \
+	${image} /bin/bash -c 'mkdir build && cd build && make -f ../s2e/Makefile.docker' \
+	|| (${docker_path} rm $(cat ${cidbootstrap}) && rm ${cidbootstrap})
+
+    [ ! -e ${cidbootstrap} ] && echo "FAILED TO BOOTSTRAP" && exit 1
 }
 
 case "$command" in

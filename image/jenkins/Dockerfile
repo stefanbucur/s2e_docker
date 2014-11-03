@@ -11,28 +11,16 @@
 # needs; for this, copy the corresponding SSH key to
 # `/home/jenkins/.ssh`.
 
-FROM stefanbucur/s2e-base:latest
+FROM stefanbucur/chef:latest
 MAINTAINER Stefan Bucur <stefan.bucur@epfl.ch>
 
 RUN apt-get update &&\
-  apt-get install -y emacs23-nox openssh-server sudo rpcbind nfs-common
+  apt-get install -y openssh-server
 
 RUN mkdir -p /var/run/sshd
 
 RUN apt-get install -y --no-install-recommends openjdk-7-jdk
 RUN apt-get build-dep -y matplotlib
-
-# Additional S2E dependencies
-RUN apt-get install -y libdwarf-dev libelf-dev libboost-dev \
-  libsqlite3-dev libmemcached-dev libboost-serialization-dev \
-  libboost-system-dev libc6-dev-i386
-
-# Install protobuf
-RUN mkdir -p /build &&\
-  wget 'https://protobuf.googlecode.com/svn/rc/protobuf-2.5.0.tar.gz' &&\
-  tar xzvf protobuf-2.5.0.tar.gz &&\
-  cd protobuf-2.5.0 && ./configure && make -j8 && make install && ldconfig &&\
-  rm -rf /build
 
 # Install pip
 ADD requirements.txt /build/requirements.txt
