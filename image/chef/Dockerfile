@@ -11,9 +11,9 @@ RUN apt-get install -y libdwarf-dev libelf-dev libboost-dev \
 
 # Install protobuf
 RUN mkdir -p /build &&\
-  wget 'https://protobuf.googlecode.com/svn/rc/protobuf-2.5.0.tar.gz' &&\
-  tar xzvf protobuf-2.5.0.tar.gz &&\
-  cd protobuf-2.5.0 && ./configure && make -j8 && make install && ldconfig &&\
+  wget 'https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.tar.gz' &&\
+  tar xzvf protobuf-2.6.0.tar.gz &&\
+  cd protobuf-2.6.0 && ./configure && make -j8 && make install && ldconfig &&\
   rm -rf /build
 
 RUN mkdir -p /home/s2e
