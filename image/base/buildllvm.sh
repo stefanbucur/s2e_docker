@@ -4,14 +4,12 @@
 # This script makes use of the `local' keyword. Although it is not POSIX
 # compliant, all shells on Linux (dash, ash, bash, zsh, ...) support it.
 
+runpath="$(realpath "$(dirname "$0")")"
+
 version=3.2
 baseurl="http://llvm.org/releases/$version"
 basedir=/opt/s2e/llvm
 prefix="$basedir/llvm-${version}-native"
-
-# XXX Ubuntu's coreutils does not ship the `realpath' command for some reason
-#runpath="$(realpath "$(dirname "$0")")"
-runpath="$basedir/patches"
 
 cores=1
 test -e /proc/cpuinfo && cores=$(grep -c '^processor' /proc/cpuinfo)
