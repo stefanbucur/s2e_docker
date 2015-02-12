@@ -4,7 +4,7 @@ FROM ubuntu:12.04
 MAINTAINER Stefan Bucur <stefan.bucur@epfl.ch>
 
 # Tool dependencies
-RUN apt-get update && apt-get install -y build-essential subversion git gettext python-docutils python-pygments nasm unzip wget
+RUN apt-get update && apt-get install -y build-essential subversion git gettext python-docutils python-pygments nasm unzip wget realpath
 
 # Library dependencies
 RUN apt-get install -y liblua5.1-dev libsdl1.2-dev libsigc++-2.0-dev binutils-dev
@@ -23,40 +23,17 @@ RUN mkdir -p /build && cd /build &&\
   python scripts/mk_make.py && make -C build -j4 && make -C build install &&\
   rm -rf /build
 
+# Download & patch the LLVM source code
 ADD llvm-3.2-memorytracer.patch /opt/s2e/llvm/patches/
 ADD clang-3.2-memorytracer.patch /opt/s2e/llvm/patches/
 ADD compiler-rt-3.2-asan4s2e.patch /opt/s2e/llvm/patches/
+ADD buildllvm.sh /opt/s2e/llvm/patches/
 
-# Download & patch the LLVM source code
-RUN cd /opt/s2e/llvm &&\
-  wget 'http://llvm.org/releases/3.2/llvm-3.2.src.tar.gz' &&\
-  wget 'http://llvm.org/releases/3.2/clang-3.2.src.tar.gz' &&\
-  wget 'http://llvm.org/releases/3.2/compiler-rt-3.2.src.tar.gz' &&\
-  tar -xzvf llvm-3.2.src.tar.gz &&\
-  patch -d llvm-3.2.src -p0 -i ../patches/llvm-3.2-memorytracer.patch &&\
-  cp -r llvm-3.2.src llvm-3.2.src-native &&\
-  tar -xzvf clang-3.2.src.tar.gz &&\
-  patch -d clang-3.2.src -p0 -i ../patches/clang-3.2-memorytracer.patch && \
-  mv clang-3.2.src llvm-3.2.src-native/tools/clang &&\
-  tar -xzvf compiler-rt-3.2.src.tar.gz &&\
-  patch -d compiler-rt-3.2.src -p0 -i ../patches/compiler-rt-3.2-asan4s2e.patch && \
-  mv compiler-rt-3.2.src llvm-3.2.src-native/projects/compiler-rt &&\
-  rm -f *.src.tar.gz && rm -rf patches/
-
-# Build & install the native LLVM
-RUN cd /opt/s2e/llvm/llvm-3.2.src-native &&\
-  ./configure \
-    --prefix=/opt/s2e/llvm/llvm-3.2-native \
-    --enable-jit --enable-optimized --disable-assertions &&\
-  make ENABLE_OPTIMIZED=1 -j8 && make install && cd .. && rm -rf llvm-3.2.src-native
+RUN /opt/s2e/llvm/patches/buildllvm.sh fetch
 
 # Build the target LLVM
-RUN cd /opt/s2e/llvm && mkdir -p llvm-3.2.build && cd llvm-3.2.build &&\
-  ../llvm-3.2.src/configure \
-    --enable-jit --enable-optimized --target=x86_64 --enable-targets=x86 \
-    CC=/opt/s2e/llvm/llvm-3.2-native/bin/clang \
-    CXX=/opt/s2e/llvm/llvm-3.2-native/bin/clang++ &&\
-  make ENABLE_OPTIMIZED=1 REQUIRES_RTTI=1 -j8
+RUN /opt/s2e/llvm/patches/buildllvm.sh build release
+RUN /opt/s2e/llvm/patches/buildllvm.sh build debug
 
 # At this point we're left with three directories in /opt/s2e/llvm:
 # - llvm-3.2-native
